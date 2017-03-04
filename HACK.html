@@ -12,149 +12,73 @@
 </form>
 </div>
 <script>
-function Chat(){
+function Chat () {
+/* call update chat function */
 this.update = updateChat;
+/* call send chat function */
 this.send = sendChat;
+/* call get state function */
 this.getState = getState;
 }
+//define get state function
 function getState() {
 if(!instanse){
 instanse = true;
+/* define AJAX function */
 $.ajax({
 type: "POST",
 url: "ajax.php",
 data: {'function': 'getState', 'file': file},
-dataType: "json",
+dataType: "json",  
 success: function(data) {state = data.state;instanse = false;}
 });
 }
 }
+//define update chat function
 function updateChat() {
 if(!instanse){
 instanse = true;
+/* define AJAX function */
 $.ajax({
 type: "POST",
 url: "ajax.php",
-data:  {'function': 'update','state': state,'file': file},
+data: {'function': 'update','state': state,'file': file},
 dataType: "json",
 success: function(data) {
 if(data.text){
-for(var i = 0; i < data.text.length; i++) {
+/* manage data */
+for (var i = 0; i < data.text.length; i++) {
 $('#chat-row').append($("
-"+data.text[i] +"
+"+ data.text[i] +"
 "));
+}  
 }
-}
-document.getElementById('chat-row').scrollTop = document.getElementById('chat-row').scroll.Height;
+/* manage position of current chat */
+document.getElementById('chat-row').scrollTop = document.getElementById('chat-row').scrollHeight;
 instanse = false;
 state = data.state;
 }
 });
 }
-else{
+else {
 setTimeout(updateChat, 1000);
 }
 }
-function sendChat(msg, name){
+//define send chat function
+function sendChat(msg, name) { 
 updateChat();
+/* define AJAX function */
 $.ajax({
 type: "POST",
 url: "ajax.php",
-data: {'function': 'sned','message': msg,'nickname': name,'file': file},
-dataType: "json"
+/* manage message */
+data: {'function': 'send','message': msg,'nickname': name,'file': file},
+dataType: "json",
 success: function(data){
 updateChat();
 }
 });
 }
-<?php
-$function = $_POST['function'];
-$log = array();
-switch($function) {
-case('getState'):
-if (file_exists('data.txt')){{
-$lines = file('data.txt');
-}
-$log['state'] = count($lines);
-break;
-case('update'):
-$state = $_POST['state'];
-if (file_exists('data.txt')) {
-$lines = file('data.txt')
-}
-$count =  count($lines);
-if ($state == $count){
-$log['state'] = $state;
-$log['text'] = false;
-} else {
-$text= array();
-$log['state'] = $state + count($lines) - $state;
-foreach ($lines as $line_num => $line) {
-if ($line_num >= $state){
-$text[] =  $line = str_replace("\n", "", $line);
-}
-$log['text'] = $text;
-}
-break;
-case('send'):
-$nickname = htmlentities(strip_tags($_POST['nickname']));
-$reg_exUrl = "/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/";
-$message = htmlentities(strip_tags($_POST['message']));
-if (($message) != "\n") {
-if (preg_match($reg_exUrl, $message, $url)) {
-$message = preg_replace($reg_exUrl, '<a href="'.$url[0].'"
-target="_blank">'.$url[0].'</a>', $message);
-}
-fwrite(fopen('data.txt', 'a'), "<span>". $nickname . "</span>" . $message = str_replace("\n", " ", $message) . "\n");
-}
-break;
-}
-echo json_encode($log);
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="demo.js"></script>
-<script>
-// open popup prompt for ask name of user    
-var name = prompt("Enter your name:", "Guest");
-// default name is 'Guest'
-if (!name || name === ' ') {
-name = "Guest";  
-}
-// strip tags
-name = name.replace(/(<([^>]+)>)/ig,"");
-// display name on page
-$("#user-name").html("User: <strong>" + name + "</strong>");
-var chat =  new Chat();
-$(function() {
-chat.getState(); 
-/* define function when key presses */
-$("#posttext").keydown(function(event) {  
-var key = event.which;  
-/* if key including return. */
-if (key >= 33) {
-var maxLength = $(this).attr("maxlength");  
-var length = this.value.length;  
-/* define limit of new content */
-if (length >= maxLength) {  
-event.preventDefault();  
-}  
-}  
-});
-/* define function when key release */
-$('#posttext').keyup(function(e) {  
-if (e.keyCode == 13) { 
-var text = $(this).val();
-var maxLength = $(this).attr("maxlength");  
-var length = text.length; 
-// send 
-if (length <= maxLength + 1) { 
-chat.send(text, name);  
-$(this).val("");
-} else {
-$(this).val(text.substring(0, maxLength));
-}  
-}
-});
-});
 
 </script>
 
