@@ -49,6 +49,6 @@ fwrite(fopen('data.txt', 'a'), "<span>". $nickname . "</span>" . $message = str_
 }
 break;
 }
-echo json_encode($log);
+echo json_encode(array('text'=>'supernatural'));
 
 ?>
