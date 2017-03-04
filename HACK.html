@@ -1,3 +1,9 @@
+
+
+<!--***************************************************************************/
+/****************************** HTML section *******************************/
+/****************************************************************************-->
+
 <!DOCTYPE html>
 <html>
 <body>
@@ -11,7 +17,23 @@
 <textarea id="posttext" maxlength="120"></textarea>
 </form>
 </div>
+
+</body>
+</html>
+
+<!--***************************************************************************/
+/****************************** Javascript below here *******************************/
+/****************************************************************************-->
+
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="demo.js"></script>
 <script>
+
+/****************************************************************************/
+/****************************** Chat() object *******************************/
+/****************************************************************************/
 function Chat () {
 /* call update chat function */
 this.update = updateChat;
@@ -36,6 +58,7 @@ success: function(data) {state = data.state;instanse = false;}
 }
 //define update chat function
 function updateChat() {
+console.log("entered updateChat");
 if(!instanse){
 instanse = true;
 /* define AJAX function */
@@ -46,11 +69,10 @@ data: {'function': 'update','state': state,'file': file},
 dataType: "json",
 success: function(data) {
 if(data.text){
+console.log("we have some chat!");
 /* manage data */
 for (var i = 0; i < data.text.length; i++) {
-$('#chat-row').append($("
-"+ data.text[i] +"
-"));
+$('#chat-row').append($(""+ data.text[i] +""));
 }  
 }
 /* manage position of current chat */
@@ -79,58 +101,59 @@ updateChat();
 }
 });
 }
-<?php
-$function = $_POST['function'];
-$log = array();
-switch($function) {
-/* get state case */
-case('getState'):
-/* check file available or not */
-if (file_exists('data.txt')) {
-/* assign to variable */
-$lines = file('data.txt');
-}
-$log['state'] = count($lines); 
-break;
-/* update case */
-case('update'):
-$state = $_POST['state'];
-/* check file available or not */
-if (file_exists('data.txt')) {
-/* assign to variable */
-$lines = file('data.txt');
-}
-$count =  count($lines);
-if ($state == $count){
-/* if state & count are equal */
-$log['state'] = $state;
-$log['text'] = false;
-} else {
-/* if state & count are no equal */
-$text= array();
-$log['state'] = $state + count($lines) - $state;
-foreach ($lines as $line_num => $line) {
-if ($line_num >= $state){
-$text[] =  $line = str_replace("\n", "", $line);
-}
-}
-$log['text'] = $text; 
-}
-break;
-/* send case */
-case('send'):
-$nickname = htmlentities(strip_tags($_POST['nickname']));
-$reg_exUrl = "/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/";
-$message = htmlentities(strip_tags($_POST['message']));
-if (($message) != "\n") {
-if (preg_match($reg_exUrl, $message, $url)) {
-$message = preg_replace($reg_exUrl, '<a href="'.$url[0].'" target="_blank">'.$url[0].'</a>', $message);
-} 
-fwrite(fopen('data.txt', 'a'), "<span>". $nickname . "</span>" . $message = str_replace("\n", " ", $message) . "\n"); 
-}
-break;
-}
-echo json_encode($log);
 
+
+/****************************************************************************/
+/****************************** Login code *******************************/
+/****************************************************************************/
+
+// open popup prompt for ask name of user    
+var name = prompt("Enter your name:", "Guest");
+// default name is 'Guest'
+if (!name || name === ' ') {
+name = "Guest";  
+}
+// strip tags
+name = name.replace(/(<([^>]+)>)/ig,"");
+// display name on page
+$("#user-name").html("User: <strong>" + name + "</strong>");
+var chat =  new Chat();
+$(function() {
+console.log("before getState");
+instanse = false;
+file="";
+chat.getState(); 
+console.log("before updating");
+chat.update();
+console.log("after updating");
+/* define function when key presses */
+$("#posttext").keydown(function(event) {  
+var key = event.which;  
+/* if key including return. */
+if (key >= 33) {
+var maxLength = $(this).attr("maxlength");  
+var length = this.value.length;  
+/* define limit of new content */
+if (length >= maxLength) {  
+event.preventDefault();  
+}  
+}  
+});
+/* define function when key release */
+$('#posttext').keyup(function(e) {  
+if (e.keyCode == 13) { 
+var text = $(this).val();
+var maxLength = $(this).attr("maxlength");  
+var length = text.length; 
+// send 
+if (length <= maxLength + 1) { 
+chat.send(text, name);  
+$(this).val("");
+} else {
+$(this).val(text.substring(0, maxLength));
+}  
+}
+});
+});
 </script>
 
